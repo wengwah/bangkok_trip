@@ -1,0 +1,2514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-type" content="dashboard">
+<meta name="design-style" content="terracotta">
+<title>Thailand Western Loop — 10-Day Route Map &amp; Travel Dashboard (26 Nov – 05 Dec 2026)</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<style>
+:root {
+  color-scheme: light;
+
+  /* 1. Terracotta Style Tokens */
+  --background: #f9f3eb;
+  --surface-container-low: #f3e9dc;
+  --surface-container: #ede0d0;
+  --surface-container-high: #e4d4c0;
+
+  --on-surface: #261b15;
+  --on-surface-variant: #57483f;
+
+  --outline: #9e8a78;
+  --outline-variant: #dfd0be;
+
+  --primary: #b84a24;
+  --on-primary: #ffffff;
+  --primary-container: #f7ebe0;
+  --on-primary-container: #7d2e12;
+  --primary-featured-border: #c98a6b;
+  --secondary: #8f6524;
+  --secondary-btn-border: #c4b29e;
+  --tertiary: #1d6356;
+  --tertiary-container: #e1efe9;
+  --on-tertiary-container: #13473d;
+  --tertiary-border: #b5d6c9;
+  --error: #b82929;
+  --on-error: #ffffff;
+
+  --data-1: #b84a24;
+  --data-2: #1d6356;
+  --data-3: #b5893e;
+  --data-4: #8c3838;
+  --data-context: #a39384;
+
+  --font-headline: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --font-label: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --rounded: 0.375rem;
+  --rounded-lg: 0.75rem;
+  --rounded-arch: 28px 28px 6px 6px;
+  --rounded-full: 9999px;
+
+  --soft-shadow: 0 4px 18px rgba(38, 27, 21, 0.04);
+  --soft-shadow-raised: 0 8px 28px rgba(38, 27, 21, 0.07);
+  --warm-hairline: 1px solid var(--outline-variant);
+  --brass-gradient: linear-gradient(90deg, #d8c3b0, #b5893e, #d8c3b0);
+
+  /* 2. Extended Domain Tokens (Nocturnal Stargazing + Cartographic Layers) */
+  --night-bg: #111726;
+  --night-surface: #182136;
+  --night-surface-high: #212d47;
+  --night-ink: #f4efe6;
+  --night-muted: #b3c0d4;
+  --night-brass: #e4b65f;
+  --night-sky: #7cc4e8;
+  --night-border: #2c3b59;
+  --night-window: rgba(228, 182, 95, 0.16);
+
+  /* Map Layer Tokens: Terrain */
+  --map-terrain-ocean: #d6e4e8;
+  --map-terrain-land: #efe7d6;
+  --map-terrain-neighbor: #e5dccb;
+  --map-terrain-ridge: #d9cbb3;
+  --map-terrain-ridge-high: #c7b494;
+  --map-terrain-contour: rgba(143, 101, 36, 0.25);
+  --map-terrain-water: #7eaab5;
+  --map-terrain-road: #b89f82;
+  --map-terrain-rail: #57483f;
+  --map-terrain-label: #3a2b22;
+
+  /* Map Layer Tokens: Satellite */
+  --map-sat-ocean: #122838;
+  --map-sat-land: #1f3326;
+  --map-sat-neighbor: #18271e;
+  --map-sat-ridge: #2c4632;
+  --map-sat-ridge-high: #3b5b41;
+  --map-sat-contour: rgba(124, 196, 232, 0.16);
+  --map-sat-water: #1c5a73;
+  --map-sat-road: #b5893e;
+  --map-sat-rail: #e4b65f;
+  --map-sat-label: #f4efe6;
+
+  /* Map Layer Tokens: Street View */
+  --map-street-ocean: #dce6ec;
+  --map-street-land: #f7f3eb;
+  --map-street-neighbor: #ebe5da;
+  --map-street-ridge: #e7dfd1;
+  --map-street-ridge-high: #ded3c0;
+  --map-street-contour: rgba(158, 138, 120, 0.18);
+  --map-street-water: #6ba3b8;
+  --map-street-road: #b84a24;
+  --map-street-rail: #261b15;
+  --map-street-label: #261b15;
+
+  /* 3. Shared Foundation Tokens */
+  --positive: #1d6356;
+  --warning: #b5893e;
+  --focus: #b84a24;
+
+  --display-size: clamp(2.125rem, 1.45rem + 2.4vw, 3.35rem);
+  --headline-size: clamp(1.45rem, 1.15rem + 1vw, 2rem);
+  --subhead-size: clamp(1.1rem, 1rem + 0.35vw, 1.32rem);
+  --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+  --label-size: 0.75rem;
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+}
+
+/* Base Reset */
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  overflow-x: clip;
+  margin: 0;
+  padding: 0;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--body-size);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+header { position: static !important; }
+
+button, input, select, textarea {
+  font-family: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.page-grid {
+  display: grid;
+  gap: var(--space-lg);
+  padding: var(--space-lg);
+  max-width: 1340px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+.page-grid * { min-width: 0; }
+
+/* Typography Helpers */
+.kicker-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.kicker {
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.badge-emerald {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: var(--tertiary-container);
+  color: var(--on-tertiary-container);
+  border: 1px solid var(--tertiary-border);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--rounded-full);
+  font-family: var(--font-label);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.badge-brass {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  border: 1px solid var(--primary-featured-border);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--rounded-full);
+  font-family: var(--font-label);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.title {
+  font-family: var(--font-headline);
+  font-weight: 600;
+  font-size: var(--display-size);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--on-surface);
+  margin: 0;
+}
+.title em {
+  font-style: italic;
+  color: var(--primary);
+}
+
+.subtitle {
+  margin: var(--space-sm) 0 0;
+  color: var(--on-surface-variant);
+  max-width: 72ch;
+}
+
+.section-heading {
+  font-family: var(--font-headline);
+  font-weight: 600;
+  font-size: var(--headline-size);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--on-surface);
+}
+.section-heading em {
+  font-style: italic;
+  color: var(--primary);
+}
+
+.ornament-rule {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-block: var(--space-md) var(--space-sm);
+  color: var(--secondary);
+  font-family: var(--font-label);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.ornament-rule::before,
+.ornament-rule::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--brass-gradient);
+}
+
+/* Arch KPI Row */
+.kpi-arch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: var(--space-md);
+}
+
+.arch-card {
+  background: var(--surface-container-low);
+  border: var(--warm-hairline);
+  border-radius: var(--rounded-arch);
+  padding: var(--space-lg) var(--space-md) var(--space-md);
+  text-align: center;
+  box-shadow: var(--soft-shadow);
+  transition: transform var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out);
+}
+.arch-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--soft-shadow-raised);
+}
+.arch-card.is-featured {
+  background: var(--primary-container);
+  border-color: var(--primary-featured-border);
+}
+.arch-card.is-nocturne {
+  background: var(--night-bg);
+  border-color: var(--night-border);
+  color: var(--night-ink);
+}
+.arch-label {
+  font-family: var(--font-label);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.arch-card.is-nocturne .arch-label {
+  color: var(--night-sky);
+}
+.arch-value {
+  font-family: var(--font-headline);
+  font-weight: 600;
+  font-size: clamp(1.85rem, 1.5rem + 1vw, 2.5rem);
+  line-height: 1.1;
+  margin: var(--space-xs) 0;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.arch-card.is-nocturne .arch-value {
+  color: var(--night-brass);
+}
+.arch-caption {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--tertiary);
+}
+.arch-card.is-nocturne .arch-caption {
+  color: var(--night-muted);
+}
+
+/* Quick Nav Anchor Strip */
+.jump-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-container);
+  border-radius: var(--rounded-lg);
+  border: var(--warm-hairline);
+}
+.jump-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  border-radius: var(--rounded-full);
+  text-decoration: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  background: var(--surface-container-low);
+  border: var(--warm-hairline);
+  transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+}
+.jump-link:hover {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+/* Buttons */
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  border-radius: var(--rounded-full);
+  border: 1px solid var(--secondary-btn-border);
+  background: transparent;
+  color: var(--on-surface);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out);
+}
+.btn-pill:hover {
+  background: var(--surface-container-high);
+}
+.btn-pill.is-primary {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+.btn-pill.is-primary:hover {
+  background: var(--on-primary-container);
+}
+.btn-pill.is-active {
+  background: var(--tertiary);
+  color: var(--on-primary);
+  border-color: var(--tertiary);
+}
+.btn-compact {
+  min-height: 44px;
+  padding: 0 0.85rem;
+  border-radius: var(--rounded-full);
+  border: 1px solid var(--secondary-btn-border);
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+}
+.btn-compact:hover {
+  background: var(--surface-container-high);
+}
+.btn-compact.is-active {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+
+/* Primary Workspace: Map + Day Inspector */
+.map-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr);
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+.panel-card {
+  background: var(--surface-container-low);
+  border: var(--warm-hairline);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--soft-shadow);
+}
+
+.map-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.layer-toggle-group, .zoom-preset-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  align-items: center;
+}
+
+.map-viewport-wrap {
+  position: relative;
+  border-radius: var(--rounded-lg);
+  border: var(--warm-hairline);
+  overflow: hidden;
+  min-height: 540px;
+  height: 540px;
+  background: var(--map-terrain-ocean);
+  user-select: none;
+  touch-action: none;
+}
+
+.map-viewport-wrap[data-layer="terrain"] {
+  --map-ocean: var(--map-terrain-ocean);
+  --map-land: var(--map-terrain-land);
+  --map-neighbor: var(--map-terrain-neighbor);
+  --map-ridge: var(--map-terrain-ridge);
+  --map-ridge-high: var(--map-terrain-ridge-high);
+  --map-contour: var(--map-terrain-contour);
+  --map-water: var(--map-terrain-water);
+  --map-road: var(--map-terrain-road);
+  --map-rail: var(--map-terrain-rail);
+  --map-label: var(--map-terrain-label);
+  background: var(--map-terrain-ocean);
+}
+
+.map-viewport-wrap[data-layer="satellite"] {
+  --map-ocean: var(--map-sat-ocean);
+  --map-land: var(--map-sat-land);
+  --map-neighbor: var(--map-sat-neighbor);
+  --map-ridge: var(--map-sat-ridge);
+  --map-ridge-high: var(--map-sat-ridge-high);
+  --map-contour: var(--map-sat-contour);
+  --map-water: var(--map-sat-water);
+  --map-road: var(--map-sat-road);
+  --map-rail: var(--map-sat-rail);
+  --map-label: var(--map-sat-label);
+  background: var(--map-sat-ocean);
+}
+
+.map-viewport-wrap[data-layer="street"] {
+  --map-ocean: var(--map-street-ocean);
+  --map-land: var(--map-street-land);
+  --map-neighbor: var(--map-street-neighbor);
+  --map-ridge: var(--map-street-ridge);
+  --map-ridge-high: var(--map-street-ridge-high);
+  --map-contour: var(--map-street-contour);
+  --map-water: var(--map-street-water);
+  --map-road: var(--map-street-road);
+  --map-rail: var(--map-street-rail);
+  --map-label: var(--map-street-label);
+  background: var(--map-street-ocean);
+}
+
+#route-map-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+}
+#route-map-svg:active {
+  cursor: grabbing;
+}
+
+.map-country-th { fill: var(--map-land); stroke: var(--outline); stroke-width: 0.7; }
+.map-country-other { fill: var(--map-neighbor); stroke: var(--outline-variant); stroke-width: 0.5; }
+.map-ridge-low { fill: var(--map-ridge); opacity: 0.65; }
+.map-ridge-high { fill: var(--map-ridge-high); opacity: 0.75; }
+.map-contour-line { fill: none; stroke: var(--map-contour); stroke-dasharray: 4 3; }
+.map-water-body { fill: var(--map-water); stroke: var(--map-water); opacity: 0.88; }
+.map-river-line { fill: none; stroke: var(--map-water); stroke-linecap: round; stroke-linejoin: round; }
+.map-highway { fill: none; stroke: var(--map-road); stroke-linecap: round; stroke-dasharray: 3 3; opacity: 0.75; }
+.map-railway { fill: none; stroke: var(--map-rail); stroke-linecap: round; stroke-dasharray: 5 3; }
+.map-route-path { fill: none; stroke: var(--primary); stroke-linecap: round; stroke-linejoin: round; }
+.map-route-return { fill: none; stroke: var(--tertiary); stroke-linecap: round; stroke-dasharray: 5 4; }
+.map-grid-line { stroke: var(--map-contour); stroke-width: 0.5; }
+
+.map-viewport-wrap[data-layer="satellite"] .map-route-path {
+  stroke: var(--night-brass);
+}
+.map-viewport-wrap[data-layer="satellite"] .map-route-return {
+  stroke: var(--night-sky);
+}
+
+.map-overlay-hud {
+  position: absolute;
+  left: var(--space-sm);
+  right: var(--space-sm);
+  bottom: var(--space-sm);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-sm);
+  pointer-events: none;
+}
+
+.hud-pill {
+  pointer-events: auto;
+  background: rgba(249, 243, 235, 0.92);
+  color: var(--on-surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.35rem 0.65rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  box-shadow: var(--soft-shadow);
+}
+
+.map-controls-bar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-md);
+  align-items: end;
+  margin-top: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-container);
+  border-radius: var(--rounded);
+  border: var(--warm-hairline);
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.control-label {
+  font-family: var(--font-label);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+
+.zoom-slider-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+input[type="range"] {
+  accent-color: var(--primary);
+  width: 100%;
+  min-height: 28px;
+}
+
+/* Day Strip Pills */
+.day-pill-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-md);
+}
+.day-pill {
+  min-height: 44px;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--rounded);
+  border: var(--warm-hairline);
+  background: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out);
+}
+.day-pill:hover {
+  background: var(--surface-container-high);
+}
+.day-pill.is-active {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+.day-pill.is-stargaze {
+  border-color: var(--night-brass);
+  box-shadow: inset 0 -2px 0 var(--night-brass);
+}
+.day-pill small {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+/* Day Inspector Rail */
+.inspector-card {
+  background: var(--surface-container-low);
+  border: var(--warm-hairline);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--soft-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.inspector-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+.meta-tile {
+  background: var(--background);
+  border: var(--warm-hairline);
+  border-radius: var(--rounded);
+  padding: var(--space-sm) var(--space-md);
+}
+.meta-tile-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.meta-tile-val {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-top: 0.15rem;
+  color: var(--on-surface);
+}
+
+.gmaps-box {
+  background: var(--tertiary-container);
+  border: 1px solid var(--tertiary-border);
+  border-radius: var(--rounded);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.gmaps-query {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--on-tertiary-container);
+  word-break: break-all;
+  background: var(--background);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--rounded);
+  border: 1px solid var(--tertiary-border);
+}
+
+.street-preview-well {
+  background: var(--surface-container);
+  border: var(--warm-hairline);
+  border-radius: var(--rounded);
+  padding: var(--space-md);
+}
+
+/* Elevation Chart */
+.elevation-panel {
+  margin-top: var(--space-md);
+  background: var(--background);
+  border: var(--warm-hairline);
+  border-radius: var(--rounded);
+  padding: var(--space-md);
+}
+.elevation-svg {
+  width: 100%;
+  min-height: 185px;
+  height: 185px;
+  display: block;
+}
+
+/* Stargazing Night Module */
+.stargaze-band {
+  background: var(--night-bg);
+  color: var(--night-ink);
+  border: 1px solid var(--night-border);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-xl) var(--space-lg);
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: var(--space-xl);
+}
+.stargaze-band .section-heading {
+  color: var(--night-ink);
+}
+.stargaze-band .section-heading em {
+  color: var(--night-brass);
+}
+.stargaze-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--night-sky);
+  margin-bottom: var(--space-xs);
+}
+.dark-sky-timeline {
+  background: var(--night-surface);
+  border: 1px solid var(--night-border);
+  border-radius: var(--rounded);
+  padding: var(--space-md);
+  margin-block: var(--space-md);
+}
+.timeline-bar {
+  display: grid;
+  grid-template-columns: 11fr 38fr 41fr;
+  height: 28px;
+  border-radius: var(--rounded);
+  overflow: hidden;
+  border: 1px solid var(--night-border);
+  margin-block: var(--space-sm);
+}
+.seg-twilight {
+  background: var(--surface-container-high);
+  color: var(--on-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+.seg-dark {
+  background: var(--night-brass);
+  color: var(--night-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.seg-moon {
+  background: var(--night-surface-high);
+  color: var(--night-sky);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.camera-settings-card {
+  background: var(--night-surface);
+  border: 1px solid var(--night-border);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.camera-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(145px, 100%), 1fr));
+  gap: var(--space-sm);
+}
+.cam-spec {
+  background: var(--night-bg);
+  border: 1px solid var(--night-border);
+  border-radius: var(--rounded);
+  padding: var(--space-sm) var(--space-md);
+}
+.cam-spec-label {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--night-muted);
+}
+.cam-spec-val {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--night-brass);
+  margin-top: 0.2rem;
+}
+
+/* Expense & Astronomical Grid */
+.two-col-asymmetric {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+.expense-bar-track {
+  display: flex;
+  height: 20px;
+  border-radius: var(--rounded-full);
+  overflow: hidden;
+  border: var(--warm-hairline);
+  margin-block: var(--space-md);
+}
+.exp-seg-air { background: var(--data-1); }
+.exp-seg-tour { background: var(--data-2); }
+.exp-seg-hotel { background: var(--data-3); }
+.exp-seg-meals { background: var(--data-4); }
+.exp-seg-park { background: var(--data-context); }
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.data-table th {
+  text-align: left;
+  padding: 0.65rem 0.6rem;
+  background: var(--surface-container);
+  font-family: var(--font-label);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+  border-bottom: 1px solid var(--outline-variant);
+}
+.data-table td {
+  padding: 0.65rem 0.6rem;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: middle;
+}
+.data-table tr.is-selected {
+  background: var(--primary-container);
+}
+.data-table tr.is-clickable {
+  cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease-out);
+}
+.data-table tr.is-clickable:hover {
+  background: var(--surface-container);
+}
+.num-cell {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  border-radius: var(--rounded);
+  border: var(--warm-hairline);
+  background: var(--background);
+}
+
+/* Itinerary 10-Day Directory + Packing Checklist */
+.itinerary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
+  gap: var(--space-md);
+}
+.day-card {
+  background: var(--surface-container-low);
+  border: var(--warm-hairline);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  box-shadow: var(--soft-shadow);
+}
+.day-card.is-selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-container), var(--soft-shadow-raised);
+}
+.day-card.is-stargaze {
+  border-color: var(--night-brass);
+  background: var(--primary-container);
+}
+.day-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-sm);
+}
+.day-card-title {
+  font-family: var(--font-headline);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.15;
+}
+.day-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: auto;
+  padding-top: var(--space-xs);
+}
+
+.packing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: var(--space-sm);
+}
+.pack-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 44px;
+  padding: 0.45rem 0.75rem;
+  background: var(--background);
+  border: var(--warm-hairline);
+  border-radius: var(--rounded);
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+.pack-item input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--tertiary);
+  cursor: pointer;
+}
+.pack-item.is-checked span {
+  text-decoration: line-through;
+  color: var(--on-surface-variant);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.footer-note {
+  border-top: var(--warm-hairline);
+  padding-top: var(--space-md);
+  color: var(--on-surface-variant);
+  font-size: 0.8125rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+/* Responsive Rules */
+@media (max-width: 980px) {
+  .map-workspace,
+  .stargaze-band,
+  .two-col-asymmetric {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .page-grid {
+    padding: var(--space-sm);
+    gap: var(--space-md);
+  }
+  .map-viewport-wrap {
+    min-height: 400px;
+    height: 400px;
+  }
+  .map-controls-bar {
+    grid-template-columns: 1fr;
+  }
+  .inspector-meta-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="page-grid">
+
+  <!-- HERO HEADER -->
+  <header id="top">
+    <div class="kicker-row">
+      <span class="kicker">26 Nov – 05 Dec 2026 · Private Package Tour &amp; Local Driver</span>
+      <span class="badge-emerald">Singapore → Lopburi → Kanchanaburi → Sangkhla Buri → BKK</span>
+    </div>
+    <h1 class="title">Ten Days Across <em>Western</em> Thailand</h1>
+    <p class="subtitle">
+      Interactive route atlas, elevation profile, per-person budget ledger, and nocturnal stargazing guide for the 10-day circuit from Lopburi's limestone peaks through Erawan's seven-tier cascades to Mon Bridge on Khao Laem Reservoir.
+    </p>
+    <div class="ornament-rule">◆ Route Overview &amp; Field Dossier ◆</div>
+
+    <div class="kpi-arch-grid">
+      <div class="arch-card is-featured">
+        <div class="arch-label">Individual Cost (Per Person)</div>
+        <div class="arch-value">SGD 1,420.69</div>
+        <div class="arch-caption">37,222 THB · Rate 1 SGD = 26.2 THB</div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-label">Circuit &amp; Transport</div>
+        <div class="arch-value">10 Days / 9 Nights</div>
+        <div class="arch-caption">Private Tour · D1–D10 Local Driver</div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-label">Elevation Span</div>
+        <div class="arch-value">5m – 1,260m</div>
+        <div class="arch-caption">BKK Coast to Chaloem Rattanakosin</div>
+      </div>
+      <div class="arch-card is-nocturne">
+        <div class="arch-label">Premier Dark Sky Window</div>
+        <div class="arch-value">19:00 – 23:30</div>
+        <div class="arch-caption">Day 6 · Mon Bridge (~320m) · Last Quarter</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- QUICK NAVIGATION -->
+  <nav class="jump-strip" aria-label="Dashboard sections">
+    <a class="jump-link" href="#map-section">Interactive Map &amp; Elevation</a>
+    <a class="jump-link" href="#stargazing-section">Day 6 Stargazing &amp; Camera Guide</a>
+    <a class="jump-link" href="#budget-astro-section">Per-Person Budget &amp; Sky Almanac</a>
+    <a class="jump-link" href="#itinerary-section">D1–D10 Stops &amp; Google Maps Nav</a>
+    <a class="jump-link" href="#packing-section">Gear &amp; Packing Tracker</a>
+  </nav>
+
+  <!-- MAP + ELEVATION + INSPECTOR WORKSPACE -->
+  <section id="map-section" class="map-workspace" aria-label="Interactive Route Map and Day Inspector">
+    <div class="panel-card">
+      <div class="map-toolbar">
+        <div>
+          <h2 class="section-heading">Route Map &amp; <em>Topographic</em> Explorer</h2>
+          <p style="margin:0.25rem 0 0;font-size:0.85rem;color:var(--on-surface-variant);">
+            Drag to pan in 2D, scroll or slide to zoom (0.25x regional overview to 12.0x site detail).
+          </p>
+        </div>
+        <div class="layer-toggle-group" role="group" aria-label="Map layer mode">
+          <button type="button" id="btn-layer-terrain" class="btn-compact is-active" onclick="setMapLayer('terrain')">Terrain</button>
+          <button type="button" id="btn-layer-satellite" class="btn-compact" onclick="setMapLayer('satellite')">Satellite</button>
+          <button type="button" id="btn-layer-street" class="btn-compact" onclick="setMapLayer('street')">Street View</button>
+        </div>
+      </div>
+
+      <!-- Map Canvas -->
+      <div id="map-viewport" class="map-viewport-wrap" data-layer="terrain">
+        <svg id="route-map-svg" viewBox="0 0 900 540" role="img" aria-label="Interactive vector route map of Lopburi, Kanchanaburi, Sangkhla Buri, and Sam Phran">
+          <g id="map-transform-layer"></g>
+        </svg>
+        <div class="map-overlay-hud">
+          <div class="hud-pill">
+            <span id="hud-zoom-readout">Zoom: 0.50x</span>
+            <span>|</span>
+            <span id="hud-scale-km">~60 km / div</span>
+            <span>|</span>
+            <span id="hud-layer-name">Terrain</span>
+          </div>
+          <div class="hud-pill" id="hud-coord-readout">
+            14.37°N, 99.45°E · Alt 120m
+          </div>
+        </div>
+      </div>
+
+      <!-- Zoom & Scale Controls -->
+      <div class="map-controls-bar">
+        <div class="control-group">
+          <span class="control-label">Quick Scale</span>
+          <div class="zoom-preset-group">
+            <button type="button" class="btn-compact" onclick="setZoomScale(0.25)">0.25x Region</button>
+            <button type="button" class="btn-compact" onclick="resetDefaultView()">0.5x Default</button>
+            <button type="button" class="btn-compact" onclick="setZoomScale(2.5)">2.5x Valley</button>
+            <button type="button" class="btn-compact" onclick="setZoomScale(6)">6x Site</button>
+            <button type="button" class="btn-compact" onclick="setZoomScale(12)">12x Max</button>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label" for="zoom-slider">Zoom Level (<span id="zoom-val-label">0.50x</span>)</label>
+          <div class="zoom-slider-row">
+            <button type="button" class="btn-compact" aria-label="Zoom out" onclick="stepZoom(-1)">−</button>
+            <input type="range" id="zoom-slider" min="0.25" max="12" step="0.05" value="0.5" oninput="syncFromZoomSlider(this.value)">
+            <button type="button" class="btn-compact" aria-label="Zoom in" onclick="stepZoom(1)">+</button>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label" for="zoom-number">Exact Scale</label>
+          <input type="number" id="zoom-number" min="0.25" max="12" step="0.25" value="0.5" oninput="syncFromZoomNumber(this.value)" style="width:84px;min-height:44px;padding:0 0.5rem;border-radius:var(--rounded);border:1px solid var(--outline-variant);background:var(--background);font-family:var(--font-mono);font-size:0.85rem;">
+        </div>
+      </div>
+
+      <!-- D1 - D10 Day Selector Strip -->
+      <div class="day-pill-strip" id="day-pill-strip" aria-label="Select itinerary day"></div>
+
+      <!-- Interactive Elevation Profile -->
+      <div class="elevation-panel">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-xs);">
+          <span class="control-label">D1–D10 Resort Altitude &amp; Peak Excursion Profile (Meters Above Sea Level)</span>
+          <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--on-surface-variant);">
+            Solid: Base Resort · Dashed Peak: Excursion Max (Click node to inspect)
+          </span>
+        </div>
+        <svg id="elevation-svg" class="elevation-svg" viewBox="0 0 820 185" role="img" aria-label="Elevation profile from Day 1 to Day 10"></svg>
+      </div>
+    </div>
+
+    <!-- Right Rail: Selected Stop Inspector + Street View + Google Maps Nav -->
+    <aside class="inspector-card" aria-label="Selected day details and Google Maps navigation">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-sm);flex-wrap:wrap;">
+        <span class="badge-brass" id="insp-day-badge">D6 · Tue, 01 Dec 2026</span>
+        <span class="badge-emerald" id="insp-alt-badge">~320m Altitude</span>
+      </div>
+      <div>
+        <h3 class="section-heading" id="insp-title" style="font-size:1.55rem;">P. Guest House &amp; Mon Bridge</h3>
+        <p id="insp-region" style="margin:0.2rem 0 0;font-size:0.85rem;font-weight:600;color:var(--primary);">Sangkhla Buri, Kanchanaburi</p>
+      </div>
+      <p id="insp-summary" style="margin:0;font-size:0.9rem;color:var(--on-surface);"></p>
+
+      <div class="inspector-meta-grid">
+        <div class="meta-tile">
+          <div class="meta-tile-label">Resort / Stay</div>
+          <div class="meta-tile-val" id="insp-stay" style="font-family:var(--font-body);font-size:0.84rem;">P. Guest House</div>
+        </div>
+        <div class="meta-tile">
+          <div class="meta-tile-label">Key Landmark &amp; Elevation</div>
+          <div class="meta-tile-val" id="insp-elevation">~320m</div>
+        </div>
+        <div class="meta-tile">
+          <div class="meta-tile-label">Temp &amp; Sky</div>
+          <div class="meta-tile-val" id="insp-weather">18–29°C · Clear</div>
+        </div>
+        <div class="meta-tile">
+          <div class="meta-tile-label">Sun / Moon Ephemeris</div>
+          <div class="meta-tile-val" id="insp-astro">06:37 / 17:53</div>
+        </div>
+      </div>
+
+      <!-- Street View / Scene Preview -->
+      <div class="street-preview-well">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
+          <span class="control-label" style="color:var(--primary);">Street View &amp; Ground Scene</span>
+          <button type="button" class="btn-compact" onclick="focusSelectedStop(6)">Zoom 6x to Site</button>
+        </div>
+        <p id="insp-street-scene" style="margin:0;font-size:0.84rem;color:var(--on-surface-variant);"></p>
+      </div>
+
+      <!-- Direct Google Maps Navigation Panel -->
+      <div class="gmaps-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-xs);">
+          <span class="control-label" style="color:var(--on-tertiary-container);">Open in Google Maps · Navigation</span>
+          <span id="insp-coords" style="font-family:var(--font-mono);font-size:0.75rem;font-weight:600;color:var(--on-tertiary-container);">15.1462, 98.4485</span>
+        </div>
+        <div class="gmaps-query" id="insp-gmaps-query">maps.google.com/?q=15.1462,98.4485+(P.+Guest+House+Sangkhla+Buri)</div>
+        <div style="display:flex;flex-wrap:wrap;gap:var(--space-xs);align-items:center;">
+          <button type="button" class="btn-pill is-primary" onclick="copySelectedMapsNav(this)">Copy Google Maps Nav</button>
+          <button type="button" class="btn-pill" onclick="copyCoordinatesOnly(this)">Copy GPS</button>
+          <span id="insp-copy-feedback" role="status" aria-live="polite" style="font-size:0.78rem;font-weight:600;color:var(--on-tertiary-container);"></span>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- STARGAZING NIGHT FEATURE & CAMERA REFERENCE CARD -->
+  <section id="stargazing-section" class="stargaze-band" aria-label="Day 6 Stargazing Window and Camera Settings">
+    <div>
+      <div class="stargaze-kicker">Featured Night Sky Event · Day 6 · Tue, 01 Dec 2026</div>
+      <h2 class="section-heading">Sangkhla Buri &amp; <em>Mon Bridge</em> Stargazing</h2>
+      <p style="margin:var(--space-sm) 0 0;color:var(--night-muted);max-width:60ch;">
+        At <strong style="color:var(--night-ink);">~320m elevation</strong> overlooking Khao Laem Reservoir, <strong style="color:var(--night-ink);">P. Guest House</strong> sits well clear of Bangkok light domes. On Tuesday night, <strong style="color:var(--night-brass);">19:00 – 23:30</strong> delivers 4.5 hours of pristine dark sky before the <strong style="color:var(--night-ink);">Last Quarter moon</strong> rises right around midnight.
+      </p>
+
+      <div class="dark-sky-timeline">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:0.75rem;">
+          <span style="color:var(--night-muted);">17:53 Sunset</span>
+          <span style="color:var(--night-brass);font-weight:700;">★ Dark Sky Window: 19:00 – 23:30</span>
+          <span style="color:var(--night-sky);">~00:00 Moonrise (50%)</span>
+        </div>
+        <div class="timeline-bar" role="img" aria-label="Dark sky window from 19:00 to 23:30 before midnight Last Quarter moonrise">
+          <div class="seg-twilight">18–19 Twilight</div>
+          <div class="seg-dark">19:00 – 23:30 PRIME DARK SKY</div>
+          <div class="seg-moon">00:00–06:37 Last Quarter Moon</div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:var(--space-md);font-size:0.8rem;color:var(--night-muted);margin-top:var(--space-xs);">
+          <span>• Temperature: ~18–20°C late evening (pack Wind Breaker)</span>
+          <span>• Gear: Tripod, Camera Filters (Stargazing), Red Headlamp</span>
+          <span>• Morning Follow-up: 06:37 Sunrise mist over Mon Bridge</span>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:var(--space-sm);align-items:center;">
+        <button type="button" class="btn-pill is-primary" onclick="inspectAndFlyToDay(6)">Focus D6 on Map (Satellite)</button>
+        <span style="font-family:var(--font-mono);font-size:0.78rem;color:var(--night-sky);">15.1462°N, 98.4485°E · Alt ~320m</span>
+      </div>
+    </div>
+
+    <!-- Dedicated Camera Settings Reference Card -->
+    <div class="camera-settings-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-sm);flex-wrap:wrap;">
+        <div>
+          <div class="stargaze-kicker" style="margin-bottom:0.15rem;">Astrophotography Field Card</div>
+          <h3 style="margin:0;font-family:var(--font-headline);font-size:1.5rem;color:var(--night-ink);">Stargazing Camera Settings Reference</h3>
+        </div>
+        <span style="font-family:var(--font-mono);font-size:0.75rem;padding:0.25rem 0.65rem;border-radius:var(--rounded);background:var(--night-window);color:var(--night-brass);border:1px solid var(--night-brass);">RAW · MF</span>
+      </div>
+
+      <div class="camera-grid">
+        <div class="cam-spec">
+          <div class="cam-spec-label">Focal Length</div>
+          <div class="cam-spec-val">14mm – 24mm</div>
+        </div>
+        <div class="cam-spec">
+          <div class="cam-spec-label">Aperture</div>
+          <div class="cam-spec-val">f/1.4 – f/2.8</div>
+        </div>
+        <div class="cam-spec">
+          <div class="cam-spec-label">Shutter Speed</div>
+          <div class="cam-spec-val">12 – 20s</div>
+        </div>
+        <div class="cam-spec">
+          <div class="cam-spec-label">ISO Sensitivity</div>
+          <div class="cam-spec-val">1600 – 3200</div>
+        </div>
+        <div class="cam-spec">
+          <div class="cam-spec-label">Focus Mode</div>
+          <div class="cam-spec-val">Manual Focus (MF)</div>
+        </div>
+        <div class="cam-spec">
+          <div class="cam-spec-label">White Balance</div>
+          <div class="cam-spec-val">3800K – 4200K</div>
+        </div>
+        <div class="cam-spec">
+          <div class="cam-spec-label">File Format</div>
+          <div class="cam-spec-val">RAW</div>
+        </div>
+        <div class="cam-spec">
+          <div class="cam-spec-label">Star Trail Rule</div>
+          <div class="cam-spec-val">≤ 15s @ 24mm</div>
+        </div>
+      </div>
+
+      <p style="margin:0;font-size:0.82rem;color:var(--night-muted);">
+        Disable image stabilization (IS/VR/OSS) on tripod. Use 10× live-view magnification on a bright star to lock <strong style="color:var(--night-ink);">Manual Focus (MF)</strong>, set a 2-second shutter delay, and shoot <strong style="color:var(--night-ink);">RAW</strong> for clean noise reduction.
+      </p>
+    </div>
+  </section>
+
+  <!-- EXPENSE SUMMARY (PER PERSON) + DAILY ASTRONOMICAL & WEATHER WIDGET -->
+  <section id="budget-astro-section" class="two-col-asymmetric" aria-label="Individual Expense Summary and Astronomical Almanac">
+
+    <!-- Individual Expense Summary Card (Per Person Only) -->
+    <div class="panel-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-sm);flex-wrap:wrap;">
+        <div>
+          <span class="kicker">Per Person Only · FX 1 SGD = 26.2 THB</span>
+          <h2 class="section-heading">Individual Expense <em>Summary</em></h2>
+        </div>
+        <div style="display:flex;gap:var(--space-xs);" role="group" aria-label="Currency display mode">
+          <button type="button" id="curr-both" class="btn-compact is-active" onclick="setCurrencyMode('both')">SGD + THB</button>
+          <button type="button" id="curr-sgd" class="btn-compact" onclick="setCurrencyMode('sgd')">SGD</button>
+          <button type="button" id="curr-thb" class="btn-compact" onclick="setCurrencyMode('thb')">THB</button>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:var(--space-md);padding:var(--space-md);background:var(--primary-container);border:1px solid var(--primary-featured-border);border-radius:var(--rounded-lg);">
+        <div>
+          <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--on-primary-container);">Total Per Person</div>
+          <div id="expense-headline-primary" style="font-family:var(--font-headline);font-size:2.25rem;font-weight:600;color:var(--on-surface);line-height:1.1;">SGD 1,420.69</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:0.72rem;font-weight:600;color:var(--on-surface-variant);">THB Equivalent</div>
+          <div id="expense-headline-secondary" style="font-family:var(--font-mono);font-size:1.25rem;font-weight:600;color:var(--primary);">37,222 THB</div>
+        </div>
+      </div>
+
+      <div class="expense-bar-track" role="img" aria-label="Expense proportion bar: Air Ticket 31.7%, Tour Package 26.9%, Hotel 25.3%, Meals 8.1%, Park Entry 8.1%">
+        <div class="exp-seg-air" style="width:31.67%;" title="Air Ticket: 31.7%"></div>
+        <div class="exp-seg-tour" style="width:26.87%;" title="Tour Package: 26.9%"></div>
+        <div class="exp-seg-hotel" style="width:25.34%;" title="Hotel Accommodation: 25.3%"></div>
+        <div class="exp-seg-meals" style="width:8.06%;" title="Meals: 8.1%"></div>
+        <div class="exp-seg-park" style="width:8.06%;" title="Park Entry Tickets: 8.1%"></div>
+      </div>
+
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Per-Person Category</th>
+              <th style="text-align:right;">THB</th>
+              <th style="text-align:right;">SGD</th>
+              <th style="text-align:right;">Share</th>
+            </tr>
+          </thead>
+          <tbody id="expense-table-body">
+            <tr>
+              <td><strong>Air Ticket</strong> <small style="color:var(--on-surface-variant);display:block;">SIN ↔ BKK Return</small></td>
+              <td class="num-cell" data-thb="11790">11,790 THB</td>
+              <td class="num-cell" data-sgd="450.00">SGD 450.00</td>
+              <td class="num-cell">31.7%</td>
+            </tr>
+            <tr>
+              <td><strong>Tour Package</strong> <small style="color:var(--on-surface-variant);display:block;">Private Van &amp; Local Driver</small></td>
+              <td class="num-cell" data-thb="10000">10,000 THB</td>
+              <td class="num-cell" data-sgd="381.68">SGD 381.68</td>
+              <td class="num-cell">26.9%</td>
+            </tr>
+            <tr>
+              <td><strong>Hotel Accommodation</strong> <small style="color:var(--on-surface-variant);display:block;">9 Nights Twin/Resort Stay</small></td>
+              <td class="num-cell" data-thb="9432">9,432 THB</td>
+              <td class="num-cell" data-sgd="360.00">SGD 360.00</td>
+              <td class="num-cell">25.3%</td>
+            </tr>
+            <tr>
+              <td><strong>Meals</strong> <small style="color:var(--on-surface-variant);display:block;">10-Day Local Dining &amp; Cafes</small></td>
+              <td class="num-cell" data-thb="3000">3,000 THB</td>
+              <td class="num-cell" data-sgd="114.50">SGD 114.50</td>
+              <td class="num-cell">8.1%</td>
+            </tr>
+            <tr>
+              <td><strong>Park Entry Tickets</strong> <small style="color:var(--on-surface-variant);display:block;">Erawan, Chaloem Rattanakosin &amp; Sites</small></td>
+              <td class="num-cell" data-thb="3000">3,000 THB</td>
+              <td class="num-cell" data-sgd="114.50">SGD 114.50</td>
+              <td class="num-cell">8.1%</td>
+            </tr>
+            <tr style="background:var(--surface-container);font-weight:700;">
+              <td>Total Per Person</td>
+              <td class="num-cell">37,222 THB</td>
+              <td class="num-cell">SGD 1,420.69</td>
+              <td class="num-cell">100%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Daily Astronomical & Weather Widget -->
+    <div class="panel-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-sm);flex-wrap:wrap;">
+        <div>
+          <span class="kicker">26 Nov – 05 Dec 2026 · ICT (UTC+7)</span>
+          <h2 class="section-heading">Daily Weather &amp; <em>Astronomical</em> Almanac</h2>
+        </div>
+        <span class="badge-emerald">Click any row to sync map</span>
+      </div>
+      <p style="margin:var(--space-xs) 0 var(--space-md);font-size:0.85rem;color:var(--on-surface-variant);">
+        Cool dry-season thermal profile (°C) paired with daily Sunrise, Sunset, Moonrise, Moonset, and waning lunar illumination.
+      </p>
+
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Day &amp; Date</th>
+              <th>Location</th>
+              <th style="text-align:right;">Temp (°C)</th>
+              <th style="text-align:right;">Sunrise / Sunset</th>
+              <th style="text-align:right;">Moonrise / Moonset</th>
+              <th>Moon Phase</th>
+            </tr>
+          </thead>
+          <tbody id="astro-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPLETE 10-DAY ITINERARY & GOOGLE MAPS CARDS -->
+  <section id="itinerary-section" aria-label="Complete 10-Day Itinerary Cards">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:var(--space-md);margin-bottom:var(--space-md);">
+      <div>
+        <span class="kicker">D1 through D10 · Stop-by-Stop Navigation</span>
+        <h2 class="section-heading">Daily Itinerary, Resorts &amp; <em>Google Maps</em> Links</h2>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:var(--space-xs);" role="group" aria-label="Filter itinerary stops">
+        <button type="button" id="filter-all" class="btn-compact is-active" onclick="setItineraryFilter('all')">All 10 Days</button>
+        <button type="button" id="filter-hike" class="btn-compact" onclick="setItineraryFilter('hike')">Hikes &amp; Parks</button>
+        <button type="button" id="filter-river" class="btn-compact" onclick="setItineraryFilter('river')">River &amp; Reservoir</button>
+        <button type="button" id="filter-astro" class="btn-compact" onclick="setItineraryFilter('astro')">Stargazing Night</button>
+      </div>
+    </div>
+    <div class="itinerary-grid" id="itinerary-cards-grid"></div>
+  </section>
+
+  <!-- INTERACTIVE PACKING TRACKER (PERSISTED) -->
+  <section id="packing-section" class="panel-card" aria-label="Field Gear and Packing Checklist">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:var(--space-md);margin-bottom:var(--space-md);">
+      <div>
+        <span class="kicker">Saved Packing Checklist · Persists Automatically</span>
+        <h2 class="section-heading">Trail, Water &amp; <em>Stargazing</em> Gear</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:var(--space-sm);flex-wrap:wrap;">
+        <span id="packing-progress" class="badge-emerald">0 / 16 Packed</span>
+        <button type="button" id="btn-reset-packing" class="btn-compact" onclick="resetPackingList(this)">Reset Checklist</button>
+      </div>
+    </div>
+    <div class="packing-grid" id="packing-checklist-grid"></div>
+  </section>
+
+  <footer class="footer-note">
+    <span>Sources: Trip Itinerary &amp; Accommodation Reviews (DeeLike Lopburi Resort, The Hub Erawan Resort, P. Guest House Sangkhla Buri, After the Rain Coffee &amp; Gallery) · Packing Note · Natural Earth Public Domain Coastlines (world-atlas 50m).</span>
+    <span>All costs calculated per person at 1 SGD = 26.2 THB · ICT (UTC+7).</span>
+  </footer>
+
+</div>
+
+<api-shim></api-shim>
+<script>
+const DAYS_DATA = [
+  {
+    id: 1,
+    code: `D1`,
+    date: `Thu, 26 Nov 2026`,
+    shortDate: `26 Nov`,
+    title: `Deelike Lopburi Resort & Wat Khao Wong Phrachan`,
+    region: `Lopburi Province`,
+    stay: `Deelike Lopburi Resort`,
+    stayRating: `4.8 / 5.0 (Google Travel)`,
+    altitudeBase: 45,
+    altitudePeak: 450,
+    altitudeLabel: `~45m Resort · 3,790 Steps`,
+    coords: [100.7035, 14.9510],
+    tags: [`hike`],
+    tempLow: 23,
+    tempHigh: 32,
+    sky: `Partly Sunny`,
+    sunrise: `06:25`,
+    sunset: `17:45`,
+    moonrise: `19:22`,
+    moonset: `08:14`,
+    moonPhase: `Waning Gibbous`,
+    moonIllum: 96,
+    summary: `Arrive at BKK and transfer north with your private driver to Lopburi. Climb the famous 3,790-step staircase at Wat Khao Wong Phrachan before resting at quiet, clean Deelike Lopburi Resort (~45m).`,
+    streetScene: `Limestone stairway winding up Khao Wong Phrachan ridge surrounded by dry monsoon forest, overlooking flat central Lopburi rice plains and Deelike Resort courtyard gardens.`,
+    gmapsLabel: `Deelike Lopburi Resort & Wat Khao Wong Phrachan`
+  },
+  {
+    id: 2,
+    code: `D2`,
+    date: `Fri, 27 Nov 2026`,
+    shortDate: `27 Nov`,
+    title: `Nandao 168 Homestay`,
+    region: `Kanchanaburi Foothills`,
+    stay: `Nandao 168 Homestay`,
+    stayRating: `Private Valley Homestay`,
+    altitudeBase: 90,
+    altitudePeak: 140,
+    altitudeLabel: `~90m Altitude`,
+    coords: [99.1850, 14.0850],
+    tags: [`river`],
+    tempLow: 21,
+    tempHigh: 31,
+    sky: `Clear & Breezy`,
+    sunrise: `06:31`,
+    sunset: `17:50`,
+    moonrise: `20:20`,
+    moonset: `09:10`,
+    moonPhase: `Waning Gibbous`,
+    moonIllum: 90,
+    summary: `Cross the central plains west into Kanchanaburi foothills (~90m). Settle into Nandao 168 Homestay for a slow rural evening ahead of hill-country hikes.`,
+    streetScene: `Tree-lined rural lane off Route 323 flanked by bamboo groves, sugarcane fields, and low karst limestone outcrops.`,
+    gmapsLabel: `Nandao 168 Homestay Kanchanaburi`
+  },
+  {
+    id: 3,
+    code: `D3`,
+    date: `Sat, 28 Nov 2026`,
+    shortDate: `28 Nov`,
+    title: `Siwalai Hill Villa & Khao Hin Tang Hike`,
+    region: `Sai Yok / Si Sawat Ridge`,
+    stay: `Siwalai Hill Villa`,
+    stayRating: `Upland Panorama Stay`,
+    altitudeBase: 350,
+    altitudePeak: 500,
+    altitudeLabel: `~350m Villa · Hike 300–500m`,
+    coords: [99.0450, 14.3120],
+    tags: [`hike`],
+    tempLow: 19,
+    tempHigh: 29,
+    sky: `Crisp Upland Air`,
+    sunrise: `06:33`,
+    sunset: `17:51`,
+    moonrise: `21:18`,
+    moonset: `10:02`,
+    moonPhase: `Waning Gibbous`,
+    moonIllum: 82,
+    summary: `Ascend to Siwalai Hill Villa (~350m) and tackle the Khao Hin Tang trail (300–500m elevation). Use hiking sticks, gloves, and leech socks along shaded karst ridges.`,
+    streetScene: `Elevated hillside villa terraces looking over misty Tenasserim ridges and forested limestone crags along the Khao Hin Tang ridge trail.`,
+    gmapsLabel: `Siwalai Hill Villa Khao Hin Tang`
+  },
+  {
+    id: 4,
+    code: `D4`,
+    date: `Sun, 29 Nov 2026`,
+    shortDate: `29 Nov`,
+    title: `The Hub Erawan Resort & Chaloem Rattanakosin`,
+    region: `Si Sawat, Kanchanaburi`,
+    stay: `The Hub Erawan Resort`,
+    stayRating: `8.6 / 10 (Trip.com · 65 reviews)`,
+    altitudeBase: 120,
+    altitudePeak: 1260,
+    altitudeLabel: `~120m Resort · Park 240–1,260m`,
+    coords: [99.1562, 14.3465],
+    tags: [`hike`, `river`],
+    tempLow: 20,
+    tempHigh: 30,
+    sky: `Mostly Clear`,
+    sunrise: `06:34`,
+    sunset: `17:51`,
+    moonrise: `22:14`,
+    moonset: `10:50`,
+    moonPhase: `Waning Gibbous`,
+    moonIllum: 73,
+    summary: `Explore Chaloem Rattanakosin National Park (240–1,260m, highest terrain on the trip) with cave & forest trails, then check into riverfront bungalows at The Hub Erawan Resort (~120m).`,
+    streetScene: `299/1 Moo 4, Tha Kradan — wooden riverfront verandas overlooking the Khwae Yai river channel, lobby coffee bar, and jungle valley slopes.`,
+    gmapsLabel: `The Hub Erawan Resort Si Sawat`
+  },
+  {
+    id: 5,
+    code: `D5`,
+    date: `Mon, 30 Nov 2026`,
+    shortDate: `30 Nov`,
+    title: `The Hub Erawan Resort & Erawan Waterfalls`,
+    region: `Erawan National Park, Si Sawat`,
+    stay: `The Hub Erawan Resort`,
+    stayRating: `10–15 min from Erawan`,
+    altitudeBase: 120,
+    altitudePeak: 996,
+    altitudeLabel: `~120m Resort · Falls up to ~996m`,
+    coords: [99.1444, 14.3686],
+    tags: [`hike`, `river`],
+    tempLow: 20,
+    tempHigh: 30,
+    sky: `Sunny Intervals`,
+    sunrise: `06:35`,
+    sunset: `17:51`,
+    moonrise: `23:08`,
+    moonset: `11:34`,
+    moonPhase: `Waning Gibbous`,
+    moonIllum: 62,
+    summary: `Spend the day climbing all 7 emerald limestone tiers of Erawan Waterfalls (up to ~996m). Afternoon free river rafting / wet raft float back at The Hub Erawan Resort (pack wet shoes & insect repellent).`,
+    streetScene: `Turquoise travertine pools stepped beneath bamboo forest canopy, plus floating raft docks on Khwae Yai river 10–15 minutes downstream.`,
+    gmapsLabel: `Erawan Waterfalls National Park`
+  },
+  {
+    id: 6,
+    code: `D6`,
+    date: `Tue, 01 Dec 2026`,
+    shortDate: `01 Dec`,
+    title: `P. Guest House Sangkhla Buri & Mon Bridge ★`,
+    region: `Sangkhla Buri · Khao Laem Reservoir`,
+    stay: `P. Guest House & Country Resort`,
+    stayRating: `High-Bank Reservoir Retreat`,
+    altitudeBase: 320,
+    altitudePeak: 360,
+    altitudeLabel: `~320m · Premier Stargazing`,
+    coords: [98.4485, 15.1462],
+    tags: [`river`, `astro`],
+    tempLow: 17,
+    tempHigh: 28,
+    sky: `Crystal Clear Night`,
+    sunrise: `06:37`,
+    sunset: `17:53`,
+    moonrise: `00:02*`,
+    moonset: `12:15`,
+    moonPhase: `Last Quarter`,
+    moonIllum: 50,
+    summary: `Drive northwest along Route 323 to Sangkhla Buri (~320m). Walk historic wooden Mon Bridge at sunset, enjoy Thai family-style dining at P. Guest House overlooking Khao Laem Reservoir, and capture the 19:00–23:30 moonless dark sky.`,
+    streetScene: `High-bank timber decks overlooking the 850m wooden Mon Bridge span, placid reservoir waters, and mist-draped Myanmar border hills.`,
+    gmapsLabel: `P. Guest House Sangkhla Buri Mon Bridge`
+  },
+  {
+    id: 7,
+    code: `D7`,
+    date: `Wed, 02 Dec 2026`,
+    shortDate: `02 Dec`,
+    title: `Star Hill River Kwai Resort`,
+    region: `Sai Yok / River Kwai Noi`,
+    stay: `Star Hill River Kwai Resort`,
+    stayRating: `Riverside Garden Resort`,
+    altitudeBase: 85,
+    altitudePeak: 150,
+    altitudeLabel: `~85m Altitude`,
+    coords: [99.0050, 14.2350],
+    tags: [`river`],
+    tempLow: 19,
+    tempHigh: 30,
+    sky: `Clear Morning Mist`,
+    sunrise: `06:36`,
+    sunset: `17:52`,
+    moonrise: `00:54`,
+    moonset: `12:55`,
+    moonPhase: `Waning Crescent`,
+    moonIllum: 39,
+    summary: `After dawn mist at Mon Bridge, descend south along the River Kwai Noi valley to Star Hill River Kwai Resort (~85m) for kayaking and riverside recovery.`,
+    streetScene: `Broad riverbend along Khwae Noi framed by teak trees, riverside kayak launches, and limestone cliff walls.`,
+    gmapsLabel: `Star Hill River Kwai Resort`
+  },
+  {
+    id: 8,
+    code: `D8`,
+    date: `Thu, 03 Dec 2026`,
+    shortDate: `03 Dec`,
+    title: `Star Hill River Kwai Resort (Valley Exploration)`,
+    region: `River Kwai Noi Corridor`,
+    stay: `Star Hill River Kwai Resort`,
+    stayRating: `2nd Night Riverside`,
+    altitudeBase: 85,
+    altitudePeak: 180,
+    altitudeLabel: `~85m Altitude`,
+    coords: [99.0180, 14.2420],
+    tags: [`river`, `hike`],
+    tempLow: 20,
+    tempHigh: 31,
+    sky: `Dry & Pleasant`,
+    sunrise: `06:36`,
+    sunset: `17:52`,
+    moonrise: `01:45`,
+    moonset: `13:34`,
+    moonPhase: `Waning Crescent`,
+    moonIllum: 28,
+    summary: `Full day based at Star Hill River Kwai Resort (~85m) for river kayaking (wear sleeves & gloves), hot springs or Sai Yok valley stops, and washing trail kit.`,
+    streetScene: `Calm morning water on River Kwai Noi with longtail boats, riverside lawns, and shaded walking paths.`,
+    gmapsLabel: `Star Hill River Kwai Resort Sai Yok`
+  },
+  {
+    id: 9,
+    code: `D9`,
+    date: `Fri, 04 Dec 2026`,
+    shortDate: `04 Dec`,
+    title: `The 28th Hotel & Death Railway`,
+    region: `Kanchanaburi Town`,
+    stay: `The 28th Hotel`,
+    stayRating: `Central Kanchanaburi Stay`,
+    altitudeBase: 40,
+    altitudePeak: 75,
+    altitudeLabel: `~40m Altitude`,
+    coords: [99.5120, 14.0220],
+    tags: [`river`],
+    tempLow: 21,
+    tempHigh: 32,
+    sky: `Warm & Clear`,
+    sunrise: `06:34`,
+    sunset: `17:50`,
+    moonrise: `02:35`,
+    moonset: `14:14`,
+    moonPhase: `Waning Crescent`,
+    moonIllum: 19,
+    summary: `Ride or walk the historic Death Railway viaduct at Tham Krasae and visit the Bridge over the River Kwai before checking into The 28th Hotel (~40m) in Kanchanaburi Town.`,
+    streetScene: `Wooden railway trestle hugging vertical limestone cliffs above the River Kwai, transitioning to Kanchanaburi town avenues.`,
+    gmapsLabel: `The 28th Hotel Kanchanaburi Death Railway`
+  },
+  {
+    id: 10,
+    code: `D10`,
+    date: `Sat, 05 Dec 2026`,
+    shortDate: `05 Dec`,
+    title: `Sam Phran (After the Rain) & BKK Return Flight`,
+    region: `Nakhon Pathom → Suvarnabhumi (BKK)`,
+    stay: `Return Flight to Singapore`,
+    stayRating: `Cafe 4.4 / 5.0 (3,814 Google Reviews)`,
+    altitudeBase: 10,
+    altitudePeak: 10,
+    altitudeLabel: `~10m Sam Phran · ~5m BKK Airport`,
+    coords: [100.2692, 13.7831],
+    tags: [`river`],
+    tempLow: 24,
+    tempHigh: 32,
+    sky: `Sunny Coastal Plain`,
+    sunrise: `06:32`,
+    sunset: `17:46`,
+    moonrise: `03:27`,
+    moonset: `14:56`,
+    moonPhase: `Waning Crescent`,
+    moonIllum: 11,
+    summary: `Stop at After the Rain Coffee & Gallery in Sam Phran (~10m; open Saturday 08:30–18:30) for roasted coconut coffee and orchard canal boat paddling, then transfer to BKK Suvarnabhumi Airport (~5m) for your return flight to Singapore.`,
+    streetScene: `45, 8 Song Khanong, Sam Phran — lush coconut plantation canals, bright wooden walkways, hanging swings, and flat expressway approach to Suvarnabhumi Airport.`,
+    gmapsLabel: `After the Rain Coffee Gallery Sam Phran`
+  }
+];
+
+const PACKING_ITEMS = [
+  { id: `windbreaker`, label: `Wind breaker (Mon Bridge, low temp)`, cat: `Apparel` },
+  { id: `swimwear`, label: `Swim wear (Erawan & river)`, cat: `Water` },
+  { id: `headwear`, label: `Headwear / sun cap`, cat: `Apparel` },
+  { id: `wetshoes`, label: `2nd pair of wet shoes`, cat: `Water` },
+  { id: `gloves`, label: `Gloves & arm sleeves (kayaking, hiking)`, cat: `Trail` },
+  { id: `camfilters`, label: `Camera filters (stargazing)`, cat: `Astro` },
+  { id: `sunblock`, label: `Sunblock`, cat: `Care` },
+  { id: `repellent`, label: `Insect repellent`, cat: `Care` },
+  { id: `energygel`, label: `Energy gel (also available in Thailand)`, cat: `Trail` },
+  { id: `leechsock`, label: `Leech socks`, cat: `Trail` },
+  { id: `detergent`, label: `Detergent (washing clothes)`, cat: `Care` },
+  { id: `shorts`, label: `Quick-dry shorts`, cat: `Apparel` },
+  { id: `hikingsticks`, label: `Hiking sticks`, cat: `Trail` },
+  { id: `bodytowel`, label: `Body towel (standby)`, cat: `Care` },
+  { id: `bodyfoam`, label: `Body & hair foam (resorts may omit)`, cat: `Care` },
+  { id: `rawcard`, label: `Extra SD cards & tripod (D6 RAW)`, cat: `Astro` }
+];
+
+const BKK_AIRPORT = { coords: [100.7501, 13.6900], label: `BKK (~5m)` };
+const SINGAPORE = { coords: [103.9915, 1.3644], label: `SIN (Singapore)` };
+
+let appState = {
+  selectedDay: 6,
+  mapLayer: `terrain`,
+  zoomScale: 0.5,
+  panX: 0,
+  panY: 0,
+  currencyMode: `both`,
+  itineraryFilter: `all`,
+  checkedPacking: []
+};
+
+let worldCountriesFeatures = null;
+let projection = null;
+let geoPath = null;
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let dragOriginPanX = 0;
+let dragOriginPanY = 0;
+
+/* Fallback Thailand & neighbor polygons so the map renders instantaneously even offline */
+const FALLBACK_THAILAND_COAST = [
+  [97.9, 16.5], [98.4, 15.6], [98.2, 15.1], [98.5, 14.6], [98.8, 13.8],
+  [99.1, 12.8], [99.6, 11.8], [99.1, 10.6], [99.2, 9.2], [100.1, 8.2],
+  [100.6, 7.2], [101.8, 6.4], [102.1, 6.2], [101.5, 7.6], [100.4, 9.2],
+  [99.9, 10.6], [99.9, 12.2], [100.1, 13.4], [100.6, 13.5], [100.9, 13.4],
+  [101.3, 12.7], [102.4, 12.1], [102.9, 11.6], [102.6, 13.2], [103.2, 14.3],
+  [104.8, 14.4], [105.5, 15.2], [104.7, 16.8], [103.8, 17.9], [102.1, 18.0],
+  [101.2, 19.3], [100.1, 20.4], [99.1, 19.8], [98.0, 18.6], [97.7, 17.5], [97.9, 16.5]
+];
+
+const FALLBACK_MALAY_PENINSULA = [
+  [100.1, 6.5], [100.5, 5.2], [101.2, 3.8], [102.2, 2.2], [103.6, 1.3],
+  [104.2, 1.4], [103.9, 2.5], [103.3, 4.1], [102.9, 5.4], [102.1, 6.2], [100.1, 6.5]
+];
+
+function getMapsQueryString(dayObj) {
+  const lat = dayObj.coords[1].toFixed(4);
+  const lng = dayObj.coords[0].toFixed(4);
+  const encodedName = dayObj.gmapsLabel.replace(/ /g, `+`);
+  return `maps.google.com/?q=${lat},${lng}+(${encodedName})`;
+}
+
+function createMoonSvg(illum, phaseName) {
+  const isLastQ = phaseName.toLowerCase().includes(`last`);
+  const pct = Math.max(5, Math.min(100, illum));
+  const rx = Math.abs((pct - 50) / 50) * 8;
+  const sweepFlag = pct >= 50 ? 1 : 0;
+  let pathD = ``;
+  if (isLastQ) {
+    pathD = `M12 4 A8 8 0 0 0 12 20 Z`;
+  } else {
+    pathD = `M12 4 A8 8 0 0 0 12 20 A${rx.toFixed(1)} 8 0 0 ${sweepFlag} 12 4 Z`;
+  }
+  return `<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:middle;margin-right:4px;">
+    <circle cx="12" cy="12" r="8" fill="var(--surface-container-high)" stroke="var(--outline)" stroke-width="1.2"/>
+    <path d="${pathD}" fill="var(--secondary)"/>
+  </svg>`;
+}
+
+function initProjection() {
+  /* Map scale 0.5x centers nicely on the Lopburi–Kanchanaburi–Sangkhla Buri loop in a 900x540 viewBox */
+  if (window.d3 && typeof d3.geoMercator === `function` && typeof d3.geoMercator().center === `function`) {
+    const testProj = d3.geoMercator()
+      .center([99.55, 14.38])
+      .scale(24500)
+      .translate([450, 270]);
+    const testPt = typeof testProj === `function` ? testProj([99.55, 14.38]) : null;
+    if (Array.isArray(testPt) && typeof testPt[0] === `number` && typeof testPt[1] === `number`) {
+      projection = testProj;
+      geoPath = d3.geoPath(projection);
+      return;
+    }
+  }
+  /* Pure-JS Web Mercator fallback when running offline or mocked */
+  const centerLon = 99.55;
+  const centerLat = 14.38;
+  const scale = 24500;
+  const toRad = deg => (deg * Math.PI) / 180;
+  const mercY = lat => Math.log(Math.tan(Math.PI / 4 + toRad(Math.max(-85, Math.min(85, lat))) / 2));
+  const cX = toRad(centerLon);
+  const cY = mercY(centerLat);
+  projection = function(lonLat) {
+    const x = 450 + scale * (toRad(lonLat[0]) - cX);
+    const y = 270 - scale * (mercY(lonLat[1]) - cY);
+    return [x, y];
+  };
+  geoPath = null;
+}
+
+function projectPoint(lonLat) {
+  if (!projection) initProjection();
+  const pt = projection(lonLat);
+  if (Array.isArray(pt) && typeof pt[0] === `number` && typeof pt[1] === `number`) {
+    return pt;
+  }
+  return [450, 270];
+}
+
+function renderBaseMap() {
+  const layer = document.getElementById(`map-transform-layer`);
+  if (!layer) return;
+  if (!projection) initProjection();
+
+  let html = ``;
+
+  /* 1. Graticule / coordinate grid */
+  for (let lon = 95; lon <= 106; lon += 1) {
+    const p1 = projectPoint([lon, 1]);
+    const p2 = projectPoint([lon, 21]);
+    if (p1 && p2) {
+      html += `<line class="map-grid-line" x1="${p1[0].toFixed(1)}" y1="${p1[1].toFixed(1)}" x2="${p2[0].toFixed(1)}" y2="${p2[1].toFixed(1)}"/>`;
+    }
+  }
+  for (let lat = 1; lat <= 21; lat += 1) {
+    const p1 = projectPoint([95, lat]);
+    const p2 = projectPoint([106, lat]);
+    if (p1 && p2) {
+      html += `<line class="map-grid-line" x1="${p1[0].toFixed(1)}" y1="${p1[1].toFixed(1)}" x2="${p2[0].toFixed(1)}" y2="${p2[1].toFixed(1)}"/>`;
+    }
+  }
+
+  /* 2. Country vector polygons (Natural Earth if loaded, else immediate fallback) */
+  if (worldCountriesFeatures && worldCountriesFeatures.length > 0) {
+    worldCountriesFeatures.forEach(feat => {
+      const name = feat.properties && feat.properties.name ? feat.properties.name : ``;
+      const d = geoPath(feat);
+      if (!d) return;
+      const cls = name === `Thailand` ? `map-country-th` : `map-country-other`;
+      html += `<path class="${cls}" d="${d}"/>`;
+    });
+  } else {
+    const thPts = FALLBACK_THAILAND_COAST.map(c => projectPoint(c).map(n => n.toFixed(1)).join(`,`)).join(` `);
+    const myPts = FALLBACK_MALAY_PENINSULA.map(c => projectPoint(c).map(n => n.toFixed(1)).join(`,`)).join(` `);
+    html += `<polygon class="map-country-th" points="${thPts}"/>`;
+    html += `<polygon class="map-country-other" points="${myPts}"/>`;
+  }
+
+  /* 3. Topographic Terrain Ridges & Elevation Contours (Tenasserim & Lopburi hills) */
+  const ridgeZones = [
+    { coords: [98.55, 15.05], rx: 185, ry: 290, rot: -22, cls: `map-ridge-low` },
+    { coords: [98.95, 14.65], rx: 145, ry: 210, rot: -18, cls: `map-ridge-high` },
+    { coords: [99.28, 14.68], rx: 85, ry: 120, rot: -12, cls: `map-ridge-high` },
+    { coords: [100.72, 14.96], rx: 52, ry: 42, rot: 10, cls: `map-ridge-high` }
+  ];
+  ridgeZones.forEach(r => {
+    const pt = projectPoint(r.coords);
+    if (!pt) return;
+    html += `<ellipse class="${r.cls}" cx="${pt[0].toFixed(1)}" cy="${pt[1].toFixed(1)}" rx="${r.rx}" ry="${r.ry}" transform="rotate(${r.rot} ${pt[0].toFixed(1)} ${pt[1].toFixed(1)})"/>`;
+    html += `<ellipse class="map-contour-line" stroke-width="1.2" cx="${pt[0].toFixed(1)}" cy="${pt[1].toFixed(1)}" rx="${(r.rx * 0.72).toFixed(1)}" ry="${(r.ry * 0.72).toFixed(1)}" transform="rotate(${r.rot} ${pt[0].toFixed(1)} ${pt[1].toFixed(1)})"/>`;
+    html += `<ellipse class="map-contour-line" stroke-width="1.0" cx="${pt[0].toFixed(1)}" cy="${pt[1].toFixed(1)}" rx="${(r.rx * 0.42).toFixed(1)}" ry="${(r.ry * 0.42).toFixed(1)}" transform="rotate(${r.rot} ${pt[0].toFixed(1)} ${pt[1].toFixed(1)})"/>`;
+  });
+
+  /* 4. Khao Laem Reservoir, Srinagarind Reservoir & River Systems */
+  const khaoLaem = [
+    [98.44, 15.16], [98.58, 15.12], [98.66, 14.98], [98.58, 14.84],
+    [98.48, 14.92], [98.41, 15.08]
+  ];
+  const srinagarind = [
+    [99.04, 14.88], [99.16, 14.76], [99.18, 14.52], [99.13, 14.39],
+    [99.05, 14.48], [98.98, 14.72]
+  ];
+  [khaoLaem, srinagarind].forEach(poly => {
+    const pts = poly.map(c => projectPoint(c).map(n => n.toFixed(1)).join(`,`)).join(` `);
+    html += `<polygon class="map-water-body" points="${pts}" stroke-width="1.5"/>`;
+  });
+
+  const kwaiNoi = [[98.45, 15.14], [98.62, 14.78], [98.85, 14.45], [99.01, 14.23], [99.22, 14.09], [99.51, 14.02]];
+  const kwaiYai = [[99.14, 14.39], [99.16, 14.34], [99.26, 14.18], [99.51, 14.02], [99.65, 13.85]];
+  const chaoPhraya = [[100.49, 14.85], [100.56, 14.35], [100.50, 13.75], [100.59, 13.55]];
+  [kwaiNoi, kwaiYai, chaoPhraya].forEach(line => {
+    const dStr = line.map((c, i) => {
+      const p = projectPoint(c);
+      return `${i === 0 ? `M` : `L`}${p[0].toFixed(1)},${p[1].toFixed(1)}`;
+    }).join(` `);
+    html += `<path class="map-river-line" d="${dStr}" stroke-width="3.2"/>`;
+  });
+
+  /* 5. Highways & Death Railway Corridor (visible especially in Street View & zoomed in) */
+  const deathRailway = [[99.53, 14.02], [99.38, 14.03], [99.17, 14.10], [99.01, 14.24], [98.84, 14.42]];
+  const drPath = deathRailway.map((c, i) => {
+    const p = projectPoint(c);
+    return `${i === 0 ? `M` : `L`}${p[0].toFixed(1)},${p[1].toFixed(1)}`;
+  }).join(` `);
+  html += `<path class="map-railway" d="${drPath}" stroke-width="2.5"/>`;
+
+  const route323 = [[100.75, 13.69], [100.27, 13.78], [99.51, 14.02], [99.18, 14.08], [99.01, 14.23], [98.45, 15.15]];
+  const hwPath = route323.map((c, i) => {
+    const p = projectPoint(c);
+    return `${i === 0 ? `M` : `L`}${p[0].toFixed(1)},${p[1].toFixed(1)}`;
+  }).join(` `);
+  html += `<path class="map-highway" d="${hwPath}" stroke-width="2.2"/>`;
+
+  /* 6. Main 10-Day Tour Route Polyline + Return Leg to Singapore */
+  const tourCoords = [BKK_AIRPORT.coords, ...DAYS_DATA.map(d => d.coords), BKK_AIRPORT.coords];
+  const tourPath = tourCoords.map((c, i) => {
+    const p = projectPoint(c);
+    return `${i === 0 ? `M` : `L`}${p[0].toFixed(1)},${p[1].toFixed(1)}`;
+  }).join(` `);
+  html += `<path class="map-route-path" d="${tourPath}" stroke-width="3.6"/>`;
+
+  const bkkPt = projectPoint(BKK_AIRPORT.coords);
+  const sinPt = projectPoint(SINGAPORE.coords);
+  if (bkkPt && sinPt) {
+    html += `<path class="map-route-return" d="M${bkkPt[0].toFixed(1)},${bkkPt[1].toFixed(1)} L${sinPt[0].toFixed(1)},${sinPt[1].toFixed(1)}" stroke-width="2.4"/>`;
+  }
+
+  /* 7. Regional Landmarks & Peak Altitude Triangles */
+  const peaks = [
+    { name: `Chaloem Rattanakosin (1,260m)`, coords: [99.295, 14.662] },
+    { name: `Erawan Falls Tier 7 (~996m)`, coords: [99.135, 14.379] },
+    { name: `Wat Khao Wong Phrachan (3,790 steps)`, coords: [100.713, 14.962] },
+    { name: `Khao Hin Tang (300–500m)`, coords: [99.058, 14.325] }
+  ];
+  peaks.forEach(pk => {
+    const p = projectPoint(pk.coords);
+    if (!p) return;
+    html += `<g class="map-peak-marker" data-coords="${pk.coords[0]},${pk.coords[1]}">
+      <polygon points="${p[0]},${p[1]-7} ${p[0]-6},${p[1]+5} ${p[0]+6},${p[1]+5}" fill="var(--tertiary)" stroke="var(--on-primary)" stroke-width="1.2"/>
+      <text x="${(p[0] + 9).toFixed(1)}" y="${(p[1] + 3).toFixed(1)}" font-family="var(--font-mono)" font-size="11" font-weight="600" fill="var(--map-label)">${pk.name}</text>
+    </g>`;
+  });
+
+  /* BKK & Singapore Nodes */
+  [BKK_AIRPORT, SINGAPORE].forEach(hub => {
+    const p = projectPoint(hub.coords);
+    if (!p) return;
+    html += `<g class="map-hub-marker">
+      <rect x="${(p[0]-5).toFixed(1)}" y="${(p[1]-5).toFixed(1)}" width="10" height="10" rx="2" fill="var(--on-surface)" stroke="var(--on-primary)" stroke-width="1.5"/>
+      <text x="${(p[0]+9).toFixed(1)}" y="${(p[1]+4).toFixed(1)}" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="var(--map-label)">${hub.label}</text>
+    </g>`;
+  });
+
+  /* 8. D1 - D10 Interactive Day Markers (Note: D4/D5 share resort vicinity, offset slightly for clarity) */
+  DAYS_DATA.forEach(d => {
+    const p = projectPoint(d.coords);
+    if (!p) return;
+    const isSel = d.id === appState.selectedDay;
+    const isStar = d.id === 6;
+    const ox = d.id === 5 ? 18 : 0;
+    const oy = d.id === 5 ? -14 : (d.id === 8 ? 16 : 0);
+    const cx = p[0] + ox;
+    const cy = p[1] + oy;
+    const fillCol = isStar ? `var(--night-brass)` : (isSel ? `var(--tertiary)` : `var(--primary)`);
+    const strokeCol = isSel ? `var(--on-surface)` : `var(--on-primary)`;
+
+    html += `<g class="map-day-node" data-day="${d.id}" style="cursor:pointer;" onclick="inspectAndFlyToDay(${d.id})">
+      <circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="14" fill="transparent"/>
+      ${isStar ? `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="15" fill="none" stroke="var(--night-brass)" stroke-width="1.6" stroke-dasharray="3 2"/>` : ``}
+      <circle class="node-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${isSel ? 11 : 9}" fill="${fillCol}" stroke="${strokeCol}" stroke-width="2"/>
+      <text class="node-code" x="${cx.toFixed(1)}" y="${(cy + 3.5).toFixed(1)}" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" font-weight="700" fill="var(--on-primary)">${d.code}</text>
+      <text class="node-label" x="${(cx + 13).toFixed(1)}" y="${(cy + 3).toFixed(1)}" font-family="var(--font-body)" font-size="11.5" font-weight="700" fill="var(--map-label)">${d.code} · ${d.stay} (${d.altitudeBase}m)</text>
+    </g>`;
+  });
+
+  layer.innerHTML = html;
+  applyMapTransform();
+}
+
+function applyMapTransform() {
+  const layer = document.getElementById(`map-transform-layer`);
+  if (!layer) return;
+  const s = appState.zoomScale;
+  const cx = 450;
+  const cy = 270;
+  const tx = cx + appState.panX - cx * s;
+  const ty = cy + appState.panY - cy * s;
+  layer.setAttribute(`transform`, `translate(${tx.toFixed(2)}, ${ty.toFixed(2)}) scale(${s.toFixed(4)})`);
+
+  /* Keep markers and labels crisp across 0.25x to 12x zoom */
+  const inv = Math.min(2.2, Math.max(0.11, 1 / Math.pow(s, 0.88)));
+  layer.querySelectorAll(`.map-day-node`).forEach(g => {
+    const dot = g.querySelector(`.node-dot`);
+    if (!dot) return;
+    const x = parseFloat(dot.getAttribute(`cx`));
+    const y = parseFloat(dot.getAttribute(`cy`));
+    g.setAttribute(`transform`, `translate(${x}, ${y}) scale(${inv.toFixed(3)}) translate(${-x}, ${-y})`);
+  });
+  layer.querySelectorAll(`.map-peak-marker, .map-hub-marker`).forEach(g => {
+    const el = g.querySelector(`polygon, rect`);
+    if (!el) return;
+    let x = 450;
+    let y = 270;
+    if (el.tagName === `rect`) {
+      x = parseFloat(el.getAttribute(`x`)) + 5;
+      y = parseFloat(el.getAttribute(`y`)) + 5;
+    } else {
+      const pts = el.getAttribute(`points`).split(` `)[0].split(`,`);
+      x = parseFloat(pts[0]);
+      y = parseFloat(pts[1]) + 7;
+    }
+    g.setAttribute(`transform`, `translate(${x}, ${y}) scale(${inv.toFixed(3)}) translate(${-x}, ${-y})`);
+  });
+
+  /* Update HUD */
+  const hudZoom = document.getElementById(`hud-zoom-readout`);
+  const hudScale = document.getElementById(`hud-scale-km`);
+  const zoomLabel = document.getElementById(`zoom-val-label`);
+  const slider = document.getElementById(`zoom-slider`);
+  const numInput = document.getElementById(`zoom-number`);
+
+  if (hudZoom) hudZoom.textContent = `Zoom: ${s.toFixed(2)}x`;
+  if (zoomLabel) zoomLabel.textContent = `${s.toFixed(2)}x`;
+  if (slider) slider.value = s;
+  if (numInput) numInput.value = s.toFixed(2);
+  if (hudScale) {
+    const kmPerDiv = 30 / s;
+    hudScale.textContent = kmPerDiv >= 1 ? `~${Math.round(kmPerDiv)} km / grid` : `~${Math.round(kmPerDiv * 1000)} m / grid`;
+  }
+}
+
+function setZoomScale(val) {
+  const clamped = Math.min(12, Math.max(0.25, parseFloat(val) || 0.5));
+  appState.zoomScale = clamped;
+  applyMapTransform();
+  saveAppState();
+}
+
+function syncFromZoomSlider(val) {
+  const clamped = Math.min(12, Math.max(0.25, parseFloat(val) || 0.5));
+  appState.zoomScale = clamped;
+  const numInput = document.getElementById(`zoom-number`);
+  if (numInput) numInput.value = clamped.toFixed(2);
+  applyMapTransform();
+  saveAppState();
+}
+
+function syncFromZoomNumber(val) {
+  const parsed = parseFloat(val);
+  if (Number.isNaN(parsed)) return;
+  const clamped = Math.min(12, Math.max(0.25, parsed));
+  appState.zoomScale = clamped;
+  const slider = document.getElementById(`zoom-slider`);
+  if (slider) slider.value = clamped;
+  applyMapTransform();
+  saveAppState();
+}
+
+function stepZoom(dir) {
+  const factor = dir > 0 ? 1.35 : 1 / 1.35;
+  setZoomScale(appState.zoomScale * factor);
+}
+
+function resetDefaultView() {
+  appState.zoomScale = 0.5;
+  appState.panX = 0;
+  appState.panY = 0;
+  applyMapTransform();
+  saveAppState();
+}
+
+function setMapLayer(layerName) {
+  appState.mapLayer = layerName;
+  const wrap = document.getElementById(`map-viewport`);
+  if (wrap) wrap.setAttribute(`data-layer`, layerName);
+
+  [`terrain`, `satellite`, `street`].forEach(name => {
+    const btn = document.getElementById(`btn-layer-${name}`);
+    if (btn) btn.classList.toggle(`is-active`, name === layerName);
+  });
+
+  const hudLayer = document.getElementById(`hud-layer-name`);
+  if (hudLayer) {
+    hudLayer.textContent = layerName === `street` ? `Street View` : (layerName === `satellite` ? `Satellite` : `Terrain`);
+  }
+  saveAppState();
+}
+
+function focusSelectedStop(targetZoom) {
+  const dayObj = DAYS_DATA.find(d => d.id === appState.selectedDay) || DAYS_DATA[0];
+  const p = projectPoint(dayObj.coords);
+  if (!p) return;
+  const s = targetZoom || Math.max(appState.zoomScale, 3.0);
+  appState.zoomScale = Math.min(12, Math.max(0.25, s));
+  appState.panX = (450 - p[0]) * appState.zoomScale;
+  appState.panY = (270 - p[1]) * appState.zoomScale;
+  applyMapTransform();
+  saveAppState();
+}
+
+function inspectAndFlyToDay(dayId) {
+  selectDay(dayId);
+  const dayObj = DAYS_DATA.find(d => d.id === dayId);
+  if (!dayObj) return;
+  if (dayId === 6) {
+    setMapLayer(`satellite`);
+  }
+  focusSelectedStop(Math.max(appState.zoomScale, 1.8));
+}
+
+function selectDay(dayId) {
+  appState.selectedDay = dayId;
+  const d = DAYS_DATA.find(item => item.id === dayId) || DAYS_DATA[0];
+
+  /* Update Inspector */
+  const setTxt = (id, txt) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = txt;
+  };
+  setTxt(`insp-day-badge`, `${d.code} · ${d.date}`);
+  setTxt(`insp-alt-badge`, d.altitudeLabel);
+  setTxt(`insp-title`, d.title);
+  setTxt(`insp-region`, `${d.region} · ${d.stayRating}`);
+  setTxt(`insp-summary`, d.summary);
+  setTxt(`insp-stay`, d.stay);
+  setTxt(`insp-elevation`, d.altitudeLabel);
+  setTxt(`insp-weather`, `${d.tempLow}–${d.tempHigh}°C · ${d.sky}`);
+  setTxt(`insp-astro`, `Sun ${d.sunrise}/${d.sunset} · Moon ${d.moonrise}`);
+  setTxt(`insp-street-scene`, d.streetScene);
+  setTxt(`insp-coords`, `${d.coords[1].toFixed(4)}, ${d.coords[0].toFixed(4)}`);
+  setTxt(`insp-gmaps-query`, getMapsQueryString(d));
+  setTxt(`hud-coord-readout`, `${d.coords[1].toFixed(2)}°N, ${d.coords[0].toFixed(2)}°E · Alt ${d.altitudeBase}m`);
+
+  /* Update Active States */
+  renderDayPills();
+  renderElevationProfile();
+  renderAstroTable();
+  renderItineraryCards();
+  renderBaseMap();
+  saveAppState();
+}
+
+function renderDayPills() {
+  const strip = document.getElementById(`day-pill-strip`);
+  if (!strip) return;
+  strip.innerHTML = DAYS_DATA.map(d => {
+    const active = d.id === appState.selectedDay ? ` is-active` : ``;
+    const star = d.id === 6 ? ` is-stargaze` : ``;
+    return `<button type="button" class="day-pill${active}${star}" onclick="inspectAndFlyToDay(${d.id})">
+      <span>${d.code}${d.id === 6 ? ` ★` : ``} · ${d.shortDate}</span>
+      <small>~${d.altitudeBase}m</small>
+    </button>`;
+  }).join(``);
+}
+
+function renderElevationProfile() {
+  const svg = document.getElementById(`elevation-svg`);
+  if (!svg) return;
+
+  const w = 820;
+  const h = 185;
+  const padL = 46;
+  const padR = 24;
+  const padT = 22;
+  const padB = 34;
+  const plotW = w - padL - padR;
+  const plotH = h - padT - padB;
+  const maxAlt = 1350;
+
+  const xPos = idx => padL + (idx / (DAYS_DATA.length - 1)) * plotW;
+  const yPos = alt => padT + plotH - (alt / maxAlt) * plotH;
+
+  let out = ``;
+  [0, 300, 600, 900, 1200].forEach(val => {
+    const y = yPos(val);
+    out += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${w - padR}" y2="${y.toFixed(1)}" stroke="var(--outline-variant)" stroke-dasharray="3 3"/>`;
+    out += `<text x="${padL - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end" font-family="var(--font-mono)" font-size="10" fill="var(--on-surface-variant)">${val}m</text>`;
+  });
+
+  /* Peak excursion dashed line */
+  const peakPts = DAYS_DATA.map((d, i) => `${i === 0 ? `M` : `L`}${xPos(i).toFixed(1)},${yPos(d.altitudePeak).toFixed(1)}`).join(` `);
+  out += `<path d="${peakPts}" fill="none" stroke="var(--tertiary)" stroke-width="1.8" stroke-dasharray="5 3"/>`;
+
+  /* Resort altitude area + line */
+  const basePts = DAYS_DATA.map((d, i) => `${i === 0 ? `M` : `L`}${xPos(i).toFixed(1)},${yPos(d.altitudeBase).toFixed(1)}`).join(` `);
+  const areaPts = `${basePts} L${xPos(DAYS_DATA.length - 1).toFixed(1)},${yPos(0).toFixed(1)} L${xPos(0).toFixed(1)},${yPos(0).toFixed(1)} Z`;
+  out += `<path d="${areaPts}" fill="var(--primary-container)" opacity="0.75"/>`;
+  out += `<path d="${basePts}" fill="none" stroke="var(--primary)" stroke-width="2.6"/>`;
+
+  /* Nodes */
+  DAYS_DATA.forEach((d, i) => {
+    const x = xPos(i);
+    const yBase = yPos(d.altitudeBase);
+    const yPeak = yPos(d.altitudePeak);
+    const isSel = d.id === appState.selectedDay;
+
+    if (d.altitudePeak > d.altitudeBase) {
+      out += `<line x1="${x.toFixed(1)}" y1="${yBase.toFixed(1)}" x2="${x.toFixed(1)}" y2="${yPeak.toFixed(1)}" stroke="var(--tertiary)" stroke-width="1.2" opacity="0.65"/>`;
+      out += `<circle cx="${x.toFixed(1)}" cy="${yPeak.toFixed(1)}" r="3.5" fill="var(--tertiary)"/>`;
+      if (d.altitudePeak >= 450) {
+        out += `<text x="${x.toFixed(1)}" y="${(yPeak - 7).toFixed(1)}" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" font-weight="600" fill="var(--tertiary)">${d.altitudePeak}m</text>`;
+      }
+    }
+
+    out += `<g style="cursor:pointer;" onclick="inspectAndFlyToDay(${d.id})">
+      <circle cx="${x.toFixed(1)}" cy="${yBase.toFixed(1)}" r="${isSel ? 7 : 5}" fill="${d.id === 6 ? `var(--night-brass)` : `var(--primary)`}" stroke="var(--background)" stroke-width="2"/>
+      <text x="${x.toFixed(1)}" y="${h - 14}" text-anchor="middle" font-family="var(--font-mono)" font-size="10.5" font-weight="${isSel ? `700` : `500`}" fill="${isSel ? `var(--primary)` : `var(--on-surface)`}">${d.code}</text>
+      <text x="${x.toFixed(1)}" y="${h - 2}" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="var(--on-surface-variant)">${d.altitudeBase}m</text>
+    </g>`;
+  });
+
+  svg.innerHTML = out;
+}
+
+function renderAstroTable() {
+  const tbody = document.getElementById(`astro-table-body`);
+  if (!tbody) return;
+  tbody.innerHTML = DAYS_DATA.map(d => {
+    const sel = d.id === appState.selectedDay ? ` is-selected` : ``;
+    const starBadge = d.id === 6 ? ` <span class="badge-brass" style="padding:1px 6px;font-size:0.62rem;">★ Stargaze</span>` : ``;
+    return `<tr class="is-clickable${sel}" onclick="inspectAndFlyToDay(${d.id})">
+      <td><strong>${d.code}</strong> · ${d.date.replace(`, 2026`, ``)}${starBadge}</td>
+      <td>${d.region} <small style="color:var(--on-surface-variant);display:block;">~${d.altitudeBase}m</small></td>
+      <td class="num-cell">${d.tempLow}–${d.tempHigh}°C<small style="display:block;color:var(--on-surface-variant);font-family:var(--font-body);">${d.sky}</small></td>
+      <td class="num-cell">${d.sunrise} / ${d.sunset}</td>
+      <td class="num-cell">${d.moonrise} / ${d.moonset}</td>
+      <td style="white-space:nowrap;">${createMoonSvg(d.moonIllum, d.moonPhase)}${d.moonPhase} (${d.moonIllum}%)</td>
+    </tr>`;
+  }).join(``);
+}
+
+function renderItineraryCards() {
+  const grid = document.getElementById(`itinerary-cards-grid`);
+  if (!grid) return;
+  const filter = appState.itineraryFilter;
+  const list = DAYS_DATA.filter(d => filter === `all` || d.tags.includes(filter));
+
+  grid.innerHTML = list.map(d => {
+    const sel = d.id === appState.selectedDay ? ` is-selected` : ``;
+    const star = d.id === 6 ? ` is-stargaze` : ``;
+    const gmapsStr = getMapsQueryString(d);
+    return `<article class="day-card${sel}${star}">
+      <div class="day-card-head">
+        <div>
+          <span class="kicker">${d.code} · ${d.date}</span>
+          <h3 class="day-card-title">${d.title}</h3>
+        </div>
+        <span class="badge-emerald">${d.altitudeLabel}</span>
+      </div>
+      <div style="font-size:0.82rem;font-weight:600;color:var(--secondary);">${d.stay} · ${d.stayRating}</div>
+      <p style="margin:0;font-size:0.875rem;color:var(--on-surface-variant);">${d.summary}</p>
+      <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--on-tertiary-container);background:var(--tertiary-container);padding:0.4rem 0.6rem;border-radius:var(--rounded);word-break:break-all;">
+        Nav: ${gmapsStr}
+      </div>
+      <div class="day-card-actions">
+        <button type="button" class="btn-compact is-active" onclick="inspectAndFlyToDay(${d.id})">View on Map</button>
+        <button type="button" class="btn-compact" onclick="copyStopMapsNav(${d.id}, this)">Open in Google Maps (Copy)</button>
+      </div>
+    </article>`;
+  }).join(``);
+}
+
+function setItineraryFilter(filter) {
+  appState.itineraryFilter = filter;
+  [`all`, `hike`, `river`, `astro`].forEach(key => {
+    const btn = document.getElementById(`filter-${key}`);
+    if (btn) btn.classList.toggle(`is-active`, key === filter);
+  });
+  renderItineraryCards();
+}
+
+function setCurrencyMode(mode) {
+  appState.currencyMode = mode;
+  [`both`, `sgd`, `thb`].forEach(m => {
+    const btn = document.getElementById(`curr-${m}`);
+    if (btn) btn.classList.toggle(`is-active`, m === mode);
+  });
+  const pEl = document.getElementById(`expense-headline-primary`);
+  const sEl = document.getElementById(`expense-headline-secondary`);
+  if (pEl && sEl) {
+    if (mode === `thb`) {
+      pEl.textContent = `37,222 THB`;
+      sEl.textContent = `SGD 1,420.69`;
+    } else {
+      pEl.textContent = `SGD 1,420.69`;
+      sEl.textContent = `37,222 THB`;
+    }
+  }
+  saveAppState();
+}
+
+function copyTextSafe(text, btn, feedbackEl) {
+  const showDone = () => {
+    if (feedbackEl) feedbackEl.textContent = `Copied to clipboard`;
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = `Copied!`;
+      setTimeout(() => { btn.textContent = orig; }, 1600);
+    }
+  };
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === `function`) {
+    navigator.clipboard.writeText(text).then(showDone).catch(() => showDone());
+  } else {
+    showDone();
+  }
+}
+
+function copySelectedMapsNav(btn) {
+  const d = DAYS_DATA.find(item => item.id === appState.selectedDay) || DAYS_DATA[0];
+  const fb = document.getElementById(`insp-copy-feedback`);
+  copyTextSafe(getMapsQueryString(d), btn, fb);
+}
+
+function copyCoordinatesOnly(btn) {
+  const d = DAYS_DATA.find(item => item.id === appState.selectedDay) || DAYS_DATA[0];
+  const fb = document.getElementById(`insp-copy-feedback`);
+  copyTextSafe(`${d.coords[1].toFixed(4)}, ${d.coords[0].toFixed(4)}`, btn, fb);
+}
+
+function copyStopMapsNav(dayId, btn) {
+  const d = DAYS_DATA.find(item => item.id === dayId);
+  if (!d) return;
+  copyTextSafe(getMapsQueryString(d), btn, null);
+}
+
+function renderPackingChecklist() {
+  const grid = document.getElementById(`packing-checklist-grid`);
+  const prog = document.getElementById(`packing-progress`);
+  if (!grid) return;
+
+  grid.innerHTML = PACKING_ITEMS.map(item => {
+    const checked = appState.checkedPacking.includes(item.id);
+    return `<label class="pack-item${checked ? ` is-checked` : ``}">
+      <input type="checkbox" ${checked ? `checked` : ``} onchange="togglePackingItem('${item.id}', this.checked)">
+      <span>${item.label}</span>
+    </label>`;
+  }).join(``);
+
+  if (prog) {
+    prog.textContent = `${appState.checkedPacking.length} / ${PACKING_ITEMS.length} Packed`;
+  }
+}
+
+function togglePackingItem(itemId, isChecked) {
+  const set = new Set(appState.checkedPacking);
+  if (isChecked) set.add(itemId);
+  else set.delete(itemId);
+  appState.checkedPacking = Array.from(set);
+  renderPackingChecklist();
+  saveAppState();
+}
+
+function resetPackingList(btn) {
+  if (btn && btn.dataset.armed !== `true`) {
+    btn.dataset.armed = `true`;
+    btn.textContent = `Click again to reset`;
+    setTimeout(() => {
+      if (btn.dataset.armed === `true`) {
+        btn.dataset.armed = `false`;
+        btn.textContent = `Reset Checklist`;
+      }
+    }, 3500);
+    return;
+  }
+  if (btn) {
+    btn.dataset.armed = `false`;
+    btn.textContent = `Reset Checklist`;
+  }
+  appState.checkedPacking = [];
+  renderPackingChecklist();
+  saveAppState();
+}
+
+function setupMapInteractions() {
+  const svg = document.getElementById(`route-map-svg`);
+  const wrap = document.getElementById(`map-viewport`);
+  if (!svg || !wrap) return;
+
+  wrap.addEventListener(`pointerdown`, e => {
+    if (e.target && e.target.closest && e.target.closest(`.map-day-node`)) return;
+    isDragging = true;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    dragOriginPanX = appState.panX;
+    dragOriginPanY = appState.panY;
+    wrap.setPointerCapture(e.pointerId);
+  });
+
+  wrap.addEventListener(`pointermove`, e => {
+    if (!isDragging) return;
+    const rect = svg.getBoundingClientRect();
+    const scaleRatioX = 900 / Math.max(1, rect.width);
+    const scaleRatioY = 540 / Math.max(1, rect.height);
+    appState.panX = dragOriginPanX + (e.clientX - dragStartX) * scaleRatioX;
+    appState.panY = dragOriginPanY + (e.clientY - dragStartY) * scaleRatioY;
+    applyMapTransform();
+  });
+
+  const endDrag = () => {
+    if (!isDragging) return;
+    isDragging = false;
+    saveAppState();
+  };
+  wrap.addEventListener(`pointerup`, endDrag);
+  wrap.addEventListener(`pointercancel`, endDrag);
+
+  wrap.addEventListener(`wheel`, e => {
+    e.preventDefault();
+    const dir = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+    setZoomScale(appState.zoomScale * dir);
+  }, { passive: false });
+}
+
+async function saveAppState() {
+  try {
+    if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === `function`) {
+      await window.notebookAppApi.setAppState({
+        selectedDay: appState.selectedDay,
+        mapLayer: appState.mapLayer,
+        zoomScale: appState.zoomScale,
+        currencyMode: appState.currencyMode,
+        checkedPacking: appState.checkedPacking
+      });
+    }
+  } catch (err) {
+    /* State save non-fatal */
+  }
+}
+
+async function initDashboard() {
+  try {
+    if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === `function`) {
+      const saved = await window.notebookAppApi.getAppState();
+      if (saved && typeof saved === `object`) {
+        if (typeof saved.selectedDay === `number`) appState.selectedDay = saved.selectedDay;
+        if (typeof saved.mapLayer === `string`) appState.mapLayer = saved.mapLayer;
+        if (typeof saved.zoomScale === `number`) appState.zoomScale = saved.zoomScale;
+        if (typeof saved.currencyMode === `string`) appState.currencyMode = saved.currencyMode;
+        if (Array.isArray(saved.checkedPacking)) appState.checkedPacking = saved.checkedPacking;
+      }
+    }
+  } catch (err) {
+    /* Proceed with defaults */
+  }
+
+  initProjection();
+  setMapLayer(appState.mapLayer);
+  setCurrencyMode(appState.currencyMode);
+  renderDayPills();
+  renderElevationProfile();
+  renderAstroTable();
+  renderItineraryCards();
+  renderPackingChecklist();
+  selectDay(appState.selectedDay);
+  setupMapInteractions();
+
+  /* Load Natural Earth 50m public-domain borders for crisp coastlines & neighbors */
+  fetch(`https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json`)
+    .then(r => r.json())
+    .then(topo => {
+      if (window.topojson && topo && topo.objects && topo.objects.countries) {
+        const geo = topojson.feature(topo, topo.objects.countries);
+        const keep = new Set([`Thailand`, `Myanmar`, `Cambodia`, `Laos`, `Malaysia`, `Singapore`, `Vietnam`]);
+        worldCountriesFeatures = geo.features.filter(f => f.properties && keep.has(f.properties.name));
+        renderBaseMap();
+      }
+    })
+    .catch(() => {
+      /* Fallback vector coast already rendered */
+    });
+
+  try {
+    if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+      window.notebookAppApi.notifyAppReady();
+    }
+  } catch (err) {
+    /* Non-fatal outside sandbox */
+  }
+}
+
+document.addEventListener(`DOMContentLoaded`, initDashboard);
+</script>
+</body>
+</html>
